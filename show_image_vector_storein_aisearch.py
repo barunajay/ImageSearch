@@ -1,3 +1,5 @@
+# az search index list --service-name ajayaisearch01 --resource-group your-resource-group-name --output table
+
 import torch
 from torchvision.models import resnet50, ResNet50_Weights
 import torchvision.transforms as transforms
@@ -5,16 +7,40 @@ from PIL import Image
 import re
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient, IndexDocumentsBatch
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import SearchIndex, SimpleField, SearchFieldDataType
 
 # Define Azure Cognitive Search parameters
-search_service_name = 'ajayaisearch01'
-index_name = 'aisearchindex02'
-api_key = 'R0wUGK9f8L1MNXz8v7Z4Rs2JHNKuClOHwmOATgIjzuAzSeAxwqlS'
+search_service_name = 'xxxxx'
+index_name = 'xxxxxxx'
+api_key = 'xxxxxxx'
 endpoint = f"https://{search_service_name}.search.windows.net/"
 credential = AzureKeyCredential(api_key)
 
+# Create or verify the index
+def create_or_verify_index():
+    client = SearchIndexClient(endpoint, credential)
+    try:
+        # Try to get the index if it exists
+        client.get_index(index_name)
+        print("Index already exists.")
+    except Exception as e:
+        # If not, create the index
+        print("Index does not exist. Creating index...")
+        index = SearchIndex(
+            name=index_name,
+            fields=[
+                SimpleField(name="ImageId", type=SearchFieldDataType.String, key=True, filterable=True),
+                SimpleField(name="Vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Double), searchable=False)
+            ]
+        )
+        client.create_index(index)
+        print("Index created.")
+
+# Initialize search client
 search_client = SearchClient(endpoint, index_name, credential)
 
+# Existing functions...
 def upload_vector_to_search(image_id, vector):
     batch = IndexDocumentsBatch()
     document = {
@@ -51,7 +77,11 @@ def sanitize_key(key):
     """Sanitizes the key to conform to Azure Search requirements."""
     return re.sub(r'[^a-zA-Z0-9_\-=]', '_', key)
 
-image_paths = [
+# Main function
+if __name__ == "__main__":
+    create_or_verify_index()
+    # List of image paths
+    image_paths = [
     "E:\\code\\oracle\\logo\\amazon.jfif",
     "E:\\code\\oracle\\logo\\bajaj.jfif",
     "E:\\code\\oracle\\logo\\google.jfif",
@@ -60,9 +90,7 @@ image_paths = [
     "E:\\code\\oracle\\logo\\microsoft.jfif",
     "E:\\code\\oracle\\logo\\tcs.jfif",
     "E:\\code\\oracle\\logo\\wipro.jfif"
-]
-
-if __name__ == "__main__":
+    ]
     for path in image_paths:
         vector = get_image_embedding(path)
         if vector is not None:
