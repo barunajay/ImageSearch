@@ -65,7 +65,7 @@ if __name__ == "__main__":
     image_path = input("Please enter the path to your image: ").strip()  # Remove leading and trailing spaces
     search_service_name = 'ajayaisearch01'
     index_name = 'aisearchindex02'
-    api_key = 'R0wUGK9f8L1MNXz8v7Z4Rs2JHNKuClOHwmOATgIjzuAzSeAxwqlS'
+    api_key = 'xxx'
 
     image_tensor, _ = load_image(image_path)
     image_features = get_image_features(image_tensor)
